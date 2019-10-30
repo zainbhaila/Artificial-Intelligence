@@ -14,7 +14,7 @@ import tdraw, turtle          # Code to use Python's "turtle drawing" package
 import opponents as op        # File containing some simple opponent programs
 
 # You must provide this yourself
-import proj2                  # File containing your program for Project 2
+import proj2 as proj2                  # File containing your program for Project 2
 
 
 def main(problem=sample_probs.rhook32b, max_search_time=5, max_init_time=5, \
