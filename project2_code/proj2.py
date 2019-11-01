@@ -60,7 +60,8 @@ def main(state,finish,walls):
         h_for_fsearch = lambda state2: h(state2, finish, walls)
         next_for_fsearch = lambda state2: [(s,1) for (y,s) in next_states(state2,finish,walls)]
         goal_for_fsearch = lambda state2: goal_test(state2,finish)
-        path = searching(state, next_for_fsearch, goal_for_fsearch, 'gbf', h_for_fsearch, choices_file)
+        path = searching(state, next_for_fsearch, goal_for_fsearch, 'gbf', 
+        h_for_fsearch, choices_file, walls)
         
         # iterate over search results to find current state
         if path:
@@ -212,6 +213,7 @@ def edist_grid(fline,walls):
             grid[x][y] = edistw_to_finish((x,y), fline, walls)
             if grid[x][y] != infinity:
                 visited.append((x,y))
+
     queue = visited[:]
     #infinity_states = []
     while queue:
@@ -308,7 +310,7 @@ def finish(x, node_count, prunes, frontier, explored, verbose=0, draw_edges=0):
     path = getpath(x)
     return [p.state for p in path]
     
-def dummy_finish(x, node_count, prunes, frontier, explored, state, choices_file, h):
+def dummy_finish(x, node_count, prunes, frontier, explored, state, choices_file, h, walls):
     """
     called during a search, to print the current best state found
     """
@@ -319,11 +321,12 @@ def dummy_finish(x, node_count, prunes, frontier, explored, state, choices_file,
         if path[i] == state:
             velocity = path[i+1][1]
             (n,m) = velocity
-            if abs(n) <= 1 and abs(m) <=1:
-                velocity = (int(math.copysign((abs(n)+1),n)), 
-                int(math.copysign((abs(m)+1),m)))
+            #if abs(n) <= 1 and abs(m) <=1:
+            #    velocity = (int(math.copysign((abs(n)+1),n)), 
+            #    int(math.copysign((abs(m)+1),m)))
             #print(velocity)
-            print(velocity,file=choices_file,flush=True)
+            if not crash((state[0],path[i+1][0]),walls):
+                print(velocity,file=choices_file,flush=True)
             break
 
 def get_edges(nodes):
@@ -366,7 +369,7 @@ def expand(x, next_states, h, frontier, explored, strategy, verbose=0, draw_edge
     return (new, n_prune, frontier, f_prune, explored, e_prune)
 
 
-def searching(s0, next_states, goal_test, strategy, h, choices_file):
+def searching(s0, next_states, goal_test, strategy, h, choices_file, walls):
     """
     Do a "graph-search-redo" search starting at state s0, looking for a path
     from s0 to a state that satisfies a user-supplied goal test. The arguments are:
@@ -396,7 +399,8 @@ def searching(s0, next_states, goal_test, strategy, h, choices_file):
         if goal_test(x.state):
             return finish(x, node_count, prunes, frontier, explored)
         elif h(best.state) != infinity: # print best state on each iteration
-            dummy_finish(best, node_count, prunes, frontier, explored, s0, choices_file, h)
+            dummy_finish(best, node_count, prunes, frontier, explored, 
+            s0, choices_file, h, walls)
         (new, n_prune, frontier, f_prune, explored, e_prune) = expand( \
             x, next_states, h, frontier, explored, strategy)
     return False
