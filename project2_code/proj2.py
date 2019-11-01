@@ -63,27 +63,28 @@ def main(state,finish,walls):
         path = searching(state, next_for_fsearch, goal_for_fsearch, 'gbf', h_for_fsearch, choices_file)
         
         # iterate over search results to find current state
-        for i in range(len(path)):
-            if path[i] == state and i + 1 < len(path):
-                state_n = path[i+1]
-                velocity = state_n[1]
-                (n,m) = velocity
-                
-                # so the cpu can't bring us to a total stop
-                #if abs(n) <= 1 and abs(m) <=1:
-                #    possible = next_states(state, finish, walls)
-                #    best = state
-                #    for (u,i) in possible:
-                #        iv = h(i, finish, walls) 
-                #        bv = h(best, finish, walls)
-                #        if best == state and iv != infinity:
-                #            best = i
-                #        elif iv < bv:
-                #            best = i
-                #        elif iv == bv and random.randint(1,2) == 2:
-                #            best = i
-                #    velocity = best[1]
-                break
+        if path:
+            for i in range(len(path)):
+                if path[i] == state and i + 1 < len(path):
+                    state_n = path[i+1]
+                    velocity = state_n[1]
+                    (n,m) = velocity
+                    
+                    # so the cpu can't bring us to a total stop
+                    #if abs(n) <= 1 and abs(m) <=1:
+                    #    possible = next_states(state, finish, walls)
+                    #    best = state
+                    #    for (u,i) in possible:
+                    #        iv = h(i, finish, walls) 
+                    #        bv = h(best, finish, walls)
+                    #        if best == state and iv != infinity:
+                    #            best = i
+                    #        elif iv < bv:
+                    #            best = i
+                    #        elif iv == bv and random.randint(1,2) == 2:
+                    #            best = i
+                    #    velocity = best[1]
+                    break
                 
     # safety check in the event that given velocity goes out of the track
     if grid_using:
@@ -538,5 +539,8 @@ def next_states(state, f_line, walls):
     return states
     
 def goal_test(state,f_line):
-    """Test whether state is near the finish and has velocity lest than 2"""
-    return abs(state[1][0]) <= 2 and abs(state[1][1]) <=2 and edist_to_line(state[0],f_line) <= 1
+    """
+    Test whether state is near the finish and has velocity lest than 2
+    """
+    return (abs(state[1][0]) <= 2 and abs(state[1][1]) <=2 and 
+    edist_to_line(state[0],f_line) <= 1)
