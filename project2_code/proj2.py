@@ -10,7 +10,7 @@ any unauthorized assistance on this project.
 Zain Bhaila
 """
 
-import racetrack_example as rt
+#import racetrack_example as rt
 import math
 import random
 import sys
@@ -59,9 +59,8 @@ def main(state,finish,walls):
         # same as calling rt.main
         h_for_fsearch = lambda state2: h(state2, finish, walls)
         next_for_fsearch = lambda state2: [(s,1) for (y,s) in next_states(state2,finish,walls)]
-        goal_for_fsearch = lambda state2: rt.goal_test(state2,finish)
+        goal_for_fsearch = lambda state2: goal_test(state2,finish)
         path = searching(state, next_for_fsearch, goal_for_fsearch, 'gbf', h_for_fsearch, choices_file)
-        #path = rt.main(state,finish,walls,'gbf', h, verbose=0, draw=0)
         
         # iterate over search results to find current state
         for i in range(len(path)):
@@ -165,7 +164,7 @@ def h_proj1(state, fline, walls, grid):
     ((x,y),(u,v)) = state
     
     # if a crash can be caused, return infinity
-    #(dbest, ebest) = opponent1((x,y),(u,v), fline, walls)
+    #best = opponent1((x,y),(u,v), fline, walls)
     #if (dbest == 0):
     #    return infinity
         
@@ -188,8 +187,8 @@ def h_proj1(state, fline, walls, grid):
     if v < 0: sdv = -sdv
     sx = x + sdu
     sy = y + sdv
-    if rt.crash([(x,y),(sx,sy)],walls):
-        penalty += math.sqrt(au**2 + av**2)
+    if crash([(x,y),(sx,sy)],walls):
+        penalty += au**2 + av**2
     hval = max(hval+penalty,sd)
     return hval
     
@@ -223,7 +222,7 @@ def edist_grid(fline,walls):
                 # if a neighbor is not a wall and not visited
                 # add it to queue and mark as visited
                 # then update grid with new value for (x, y)
-                if not rt.crash(((x,y),(x1,y1)),walls):
+                if not crash(((x,y),(x1,y1)),walls):
                     if (x1, y1) not in visited:
                         queue.append((x1,y1))
                         visited.append((x1, y1))
@@ -256,11 +255,11 @@ def edistw_to_finish(point, fline, walls):
     if x1 == x2:           # fline is vertical, so iterate over y
         ds = [math.sqrt((x1-x)**2 + (y3-y)**2) \
             for y3 in range(min(y1,y2),max(y1,y2)+1) \
-            if not rt.crash(((x,y),(x1,y3)), walls)]
+            if not crash(((x,y),(x1,y3)), walls)]
     else:                  # fline is horizontal, so iterate over x
         ds = [math.sqrt((x3-x)**2 + (y1-y)**2) \
             for x3 in range(min(x1,x2),max(x1,x2)+1) \
-            if not rt.crash(((x,y),(x3,y1)), walls)]
+            if not crash(((x,y),(x3,y1)), walls)]
     ds.append(infinity)    # for the case where ds is empty
     return min(ds)
     
@@ -395,7 +394,7 @@ def searching(s0, next_states, goal_test, strategy, h, choices_file):
             #print(x.state)
         if goal_test(x.state):
             return finish(x, node_count, prunes, frontier, explored)
-        else: # print best state on each iteration
+        elif h(best.state) != infinity: # print best state on each iteration
             dummy_finish(best, node_count, prunes, frontier, explored, s0, choices_file, h)
         (new, n_prune, frontier, f_prune, explored, e_prune) = expand( \
             x, next_states, h, frontier, explored, strategy)
@@ -537,3 +536,7 @@ def next_states(state, f_line, walls):
             not ((wx, wy) != 0 and (errloc == loc))):
                 states.append(((newloc, (wx,wy)),(errloc,(wx,wy))))
     return states
+    
+def goal_test(state,f_line):
+    """Test whether state is near the finish and has velocity lest than 2"""
+    return abs(state[1][0]) <= 2 and abs(state[1][1]) <=2 and edist_to_line(state[0],f_line) <= 1
