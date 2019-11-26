@@ -8,14 +8,14 @@ def activation(z):
     
     Output: a vector of elements with sigmoid preformed on them
     '''
-    return 1 / (1 + np.exp(-z))
+    return np.tanh(z)
 
 
 def sigderiv(z):
     '''
     The derivative of Sigmoid, you will need this to preform back prop
     '''
-    return activation(z) * (1 - activation(z))
+    return 1-activation(z)**2
 
 class NeuralNetwork(object):     
     '''
@@ -48,32 +48,34 @@ class NeuralNetwork(object):
     def calcDeltas(self, results, pre, activations, correct):
         deltas = []
         finaldelta= np.dot(np.subtract(correct, results),sigderiv(list(reversed(pre))[0]))
-        incomingweights = (self.weights*finaldelta)[0][1][0]
+        incomingweights = (self.weights*finaldelta)[0][2][0]
         presigderiv = sigderiv(list(reversed(pre))[1])
         finals = [incomingweights[i]*presigderiv[i] for i in range(len(incomingweights))]
+        incomingweights = (self.weights*finaldelta)[0][1]
+        presigderiv = sigderiv(list(reversed(pre))[2])
+        finals2 = [np.array([sum(incomingweights[i]*presigderiv[i])]) for i in range(len(incomingweights))]
+        deltas.append(finals2)
         deltas.append(finals)
         deltas.append([finaldelta[0]])
-        #print(finaldelta,"\n\n",finals,"\n\n",deltas)
+        #print((self.weights*finaldelta)[0][1][0], "\n\n",sigderiv(list(reversed(pre))[2]))
+        #print(deltas)
         return deltas
 
     def backpropagate(self, deltas, activations):
         out = []
-        alpha = .1
+        alpha = self.alpha
         #print(deltas, "\n\n", activations,"\n\n",self.weights, "\n\n", self.biases)
         for i in range(self.size[0]):
-            self.weights[0][0][i] += activations[0][i][0]*alpha*deltas[0][0]
-            self.weights[0][1][i] += activations[0][i][0]*alpha*deltas[0][1]
-            self.weights[0][2][i] += activations[0][i][0]*alpha*deltas[0][2]
-            self.weights[0][3][i] += activations[0][i][0]*alpha*deltas[0][3]
-        self.weights[1][0][0] += activations[1][0][0]*alpha*deltas[1][0]
-        self.weights[1][0][1] += activations[1][1][0]*alpha*deltas[1][0]
-        self.weights[1][0][2] += activations[1][2][0]*alpha*deltas[1][0]
-        self.weights[1][0][3] += activations[1][3][0]*alpha*deltas[1][0]
-        self.biases[0][0][0] += alpha*deltas[0][0]
-        self.biases[0][1][0] += alpha*deltas[0][1]
-        self.biases[0][2][0] += alpha*deltas[0][2]
-        self.biases[0][3][0] += alpha*deltas[0][3]
-        self.biases[1][0][0] += alpha*deltas[1][0]
+            for j in range(self.size[1]):
+                self.weights[0][j][i] += activations[0][i][0]*alpha*deltas[0][j]
+        for j in range(self.size[1]):
+            for i in range(self.size[1]):
+                self.weights[1][j][i] += activations[1][i][0]*alpha*deltas[1][j]
+            self.biases[0][j][0] += alpha*deltas[0][j]
+        for j in range(self.size[2]):
+            self.weights[2][0][j] += activations[2][j][0]*alpha*deltas[2][0]
+            self.biases[1][j][0] += alpha*deltas[1][j]
+        self.biases[2][0][0] += alpha*deltas[2][0]
         #print(self.weights, "\n\n", self.biases)
         return out
         
@@ -107,8 +109,9 @@ class NeuralNetwork(object):
 
     def train(self, X, y):
         #print(self.weights,"\n\n",self.biases)
-        for loop in range(0,3):
-            for i in range(len(X[0])):
+        for loop in range(0,10): #change to 10
+            self.alpha = (.1 if loop < 5 else .05)
+            for i in range(len(X[0])): #change to len(X[0])
                 x = [0 for i in range(self.size[0])]
                 y2 = [[y[0][i]]]
                 for j in range(self.size[0]):
@@ -157,7 +160,7 @@ def test_train(X, y):
     
     #feel free to change the inside (hidden) layers to best suite your implementation
     #but the sizes of the input layer and output layer (inputSize and 1) must NOT CHANGE
-    retNN = NeuralNetwork([inputSize, 4, 1])
+    retNN = NeuralNetwork([inputSize, 8, 8, 1])
     #train your network here
     retNN.train(X, y)
     
